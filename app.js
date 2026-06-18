@@ -31,13 +31,15 @@ async function salvar() {
 }
 
 /**
- * Calcula custo, preço de venda sugerido, lucro e markup de um produto.
- * Custo = materiais + investimento individual do produto.
- * Custos globais NÃO entram no cálculo — são só informativos.
+ * Calcula todos os valores de um produto.
  *
- * Margem sobre o preço de venda:
- *   precoVenda = custoTotal / (1 - margem/100)
- *   Ex.: custo R$10, margem 20% → preço = R$12,50, lucro = R$2,50
+ * custoTotal = materiais + investimento
+ * precoVenda = custoTotal / (1 - margem/100)
+ *   → margem é sempre sobre o preço de venda (não sobre o custo)
+ *   → Ex.: custo R$10, margem 30% → preço = R$14,29; lucro = R$4,29
+ *
+ * retornoInvestimento = quantas unidades precisa vender para cobrir só o investimento
+ * retornoTotal        = quantas unidades precisa vender para cobrir custo total + investimento
  */
 function calcProduto(p) {
   const custoMateriais = (p.materiais || []).reduce(
@@ -55,10 +57,16 @@ function calcProduto(p) {
   const lucro      = precoVenda - custoTotal;
   const markup     = custoTotal > 0 ? ((precoVenda / custoTotal) - 1) * 100 : 0;
 
-  return { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup };
+  // Quantas unidades vender para recuperar o investimento
+  // (o lucro por unidade é "lucro"; o investimento precisa ser pago por esse lucro)
+  const unidadesParaRecuperar = (lucro > 0 && investimento > 0)
+    ? Math.ceil(investimento / lucro)
+    : 0;
+
+  return { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar };
 }
 
-// ── Custos Globais (informativos) ──────────────────────────────────
+// ── Custos Globais (informativos) ──────────────────────────
 
 const TIPOS_CUSTO = [
   { valor: 'luz',        label: 'Conta de Luz',      icon: 'ti-bolt' },
@@ -121,7 +129,7 @@ function renderizarCustosGlobais() {
   if (elTotalGlobal) elTotalGlobal.textContent = fmt(totalGlobal);
 
   if (custosGlobais.length === 0) {
-    lista.innerHTML = '<div class="cg-empty"><i class="ti ti-receipt-off"></i> Nenhum custo global cadastrado</div>';
+    lista.innerHTML = '<div class="cg-empty"><i class="ti ti-receipt-off"></i> Nenhum custo fixo cadastrado</div>';
     return;
   }
 
@@ -176,7 +184,7 @@ function renderizar() {
   }
 
   lista.innerHTML = produtos.map((p, pi) => {
-    const { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup } = calcProduto(p);
+    const { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar } = calcProduto(p);
 
     const materiaisHtml = (p.materiais || []).map((m, mi) => {
       const subtotal = (Number(m.qtd) || 0) * (Number(m.valorUnit) || 0);
@@ -199,42 +207,49 @@ function renderizar() {
         </div>`;
     }).join('');
 
+    // Bloco de retorno do investimento (só aparece se tiver investimento)
+    const retornoHtml = investimento > 0 ? `
+      <div class="retorno-row">
+        <i class="ti ti-chart-arrows-vertical"></i>
+        <span class="retorno-label">Retorno do investimento</span>
+        <div class="retorno-pills">
+          <span class="retorno-pill pill-blue">
+            <i class="ti ti-coin"></i> Investimento: ${fmt(investimento)}
+          </span>
+          <span class="retorno-pill pill-mint">
+            <i class="ti ti-receipt"></i> Lucro por unidade: ${fmt(lucro)}
+          </span>
+          <span class="retorno-pill pill-purple">
+            <i class="ti ti-package"></i>
+            ${unidadesParaRecuperar > 0
+              ? `Recupera em <strong>${unidadesParaRecuperar} venda${unidadesParaRecuperar > 1 ? 's' : ''}</strong>`
+              : 'Defina margem para calcular'}
+          </span>
+        </div>
+      </div>` : '';
+
     return `
     <div class="product-card" data-index="${pi}">
+
+      <!-- Cabeçalho -->
       <div class="product-header">
         <input class="product-nome-edit" type="text" value="${p.nome}" title="Nome do produto"
           onchange="editarNomeProduto(${pi}, this.value)" />
         <div class="product-header-badges">
           <span class="badge-custo"><i class="ti ti-coin"></i> Custo: ${fmt(custoTotal)}</span>
-          <span class="badge-venda"><i class="ti ti-tag"></i> Venda sugerida: ${fmt(precoVenda)}</span>
+          <span class="badge-venda"><i class="ti ti-tag"></i> Preço sugerido: ${fmt(precoVenda)}</span>
         </div>
         <button class="btn-icon btn-remove-produto" onclick="removerProduto(${pi})" title="Remover produto">
           <i class="ti ti-trash"></i>
         </button>
       </div>
 
+      <!-- Materiais -->
       <div class="materiais-lista">
         ${materiaisHtml || '<div class="materiais-empty">Nenhum material adicionado ainda</div>'}
       </div>
 
-      <!-- Investimento individual -->
-      <div class="investimento-row">
-        <div class="investimento-left">
-          <i class="ti ti-cash"></i>
-          <span class="investimento-label">Meu investimento neste produto</span>
-          <span class="investimento-hint">(valor que quero recuperar)</span>
-        </div>
-        <div class="investimento-input-wrap">
-          <span class="mat-prefix">R$</span>
-          <input type="number" class="investimento-edit" min="0" step="0.01"
-            value="${investimento > 0 ? investimento.toFixed(2) : ''}"
-            placeholder="0,00"
-            title="Valor de investimento individual"
-            onchange="editarInvestimento(${pi}, this.value)" />
-        </div>
-        ${investimento > 0 ? `<span class="investimento-badge">+${fmt(investimento)} no custo</span>` : ''}
-      </div>
-
+      <!-- Adicionar material -->
       <div class="material-add-row">
         <input type="text" class="mat-add-nome" placeholder="Nome do material" />
         <span class="mat-prefix">R$</span>
@@ -246,42 +261,74 @@ function renderizar() {
         </button>
       </div>
 
+      <!-- Investimento -->
+      <div class="investimento-row">
+        <div class="investimento-left">
+          <i class="ti ti-cash"></i>
+          <div class="investimento-texts">
+            <span class="investimento-label">Meu investimento neste produto</span>
+            <span class="investimento-hint">moldes, ferramentas, material inicial — valor que quero recuperar nas vendas</span>
+          </div>
+        </div>
+        <div class="investimento-right">
+          <div class="investimento-input-wrap">
+            <span class="mat-prefix">R$</span>
+            <input type="number" class="investimento-edit" min="0" step="0.01"
+              value="${investimento > 0 ? investimento.toFixed(2) : ''}"
+              placeholder="0,00"
+              title="Valor de investimento"
+              onchange="editarInvestimento(${pi}, this.value)" />
+          </div>
+          ${investimento > 0
+            ? `<button class="btn-inv-clear" onclick="editarInvestimento(${pi}, 0)" title="Zerar investimento">
+                <i class="ti ti-x"></i>
+              </button>`
+            : ''}
+        </div>
+      </div>
+
+      <!-- Retorno do investimento -->
+      ${retornoHtml}
+
+      <!-- Margem e resultados -->
       <div class="margem-row">
         <div class="margem-input-group">
           <i class="ti ti-percentage"></i>
           <label>Quero ganhar</label>
           <input type="number" class="margem-edit" min="0" max="99" step="1" value="${margem}"
-            title="Margem de lucro desejada" onchange="editarMargem(${pi}, this.value)" />
+            title="Margem de lucro sobre o preço de venda" onchange="editarMargem(${pi}, this.value)" />
           <span>% de margem</span>
         </div>
-        <div class="margem-resultados">
-          <div class="margem-res-item">
-            <span class="margem-res-label">Custo materiais</span>
-            <strong class="margem-res-markup">${fmt(custoMateriais)}</strong>
+
+        <div class="resultados-grid">
+          <div class="res-bloco res-materiais">
+            <span class="res-label"><i class="ti ti-tool"></i> Materiais</span>
+            <strong class="res-valor">${fmt(custoMateriais)}</strong>
           </div>
           ${investimento > 0 ? `
-          <div class="margem-res-item">
-            <span class="margem-res-label">Investimento</span>
-            <strong style="font-family:var(--mono);font-size:14px;color:var(--blue)">${fmt(investimento)}</strong>
+          <div class="res-bloco res-investimento">
+            <span class="res-label"><i class="ti ti-cash"></i> Investimento</span>
+            <strong class="res-valor">${fmt(investimento)}</strong>
           </div>` : ''}
-          <div class="margem-res-item">
-            <span class="margem-res-label">Custo total</span>
-            <strong style="font-family:var(--mono);font-size:14px;color:var(--red)">${fmt(custoTotal)}</strong>
+          <div class="res-bloco res-custo-total">
+            <span class="res-label"><i class="ti ti-stack-2"></i> Custo total</span>
+            <strong class="res-valor">${fmt(custoTotal)}</strong>
           </div>
-          <div class="margem-res-item">
-            <span class="margem-res-label">Preço de venda</span>
-            <strong class="margem-res-venda">${fmt(precoVenda)}</strong>
+          <div class="res-bloco res-venda">
+            <span class="res-label"><i class="ti ti-tag"></i> Preço de venda</span>
+            <strong class="res-valor">${fmt(precoVenda)}</strong>
           </div>
-          <div class="margem-res-item">
-            <span class="margem-res-label">Lucro líquido</span>
-            <strong class="margem-res-lucro">${fmt(lucro)}</strong>
+          <div class="res-bloco res-lucro">
+            <span class="res-label"><i class="ti ti-trending-up"></i> Lucro / unidade</span>
+            <strong class="res-valor">${fmt(lucro)}</strong>
           </div>
-          <div class="margem-res-item">
-            <span class="margem-res-label">Markup s/ custo</span>
-            <strong class="margem-res-markup">${markup.toFixed(1)}%</strong>
+          <div class="res-bloco res-markup">
+            <span class="res-label"><i class="ti ti-percentage"></i> Markup s/ custo</span>
+            <strong class="res-valor">${markup.toFixed(1)}%</strong>
           </div>
         </div>
       </div>
+
     </div>`;
   }).join('');
 }
@@ -353,9 +400,9 @@ function removerMaterial(pi, mi) {
 
 function editarMaterial(pi, mi, campo, v) {
   const m = produtos[pi].materiais[mi];
-  if (campo === 'nome')      m.nome      = v;
+  if (campo === 'nome')           m.nome      = v;
   else if (campo === 'valorUnit') m.valorUnit = parseFloat(v) || 0;
-  else if (campo === 'qtd')  m.qtd       = parseFloat(v) || 0;
+  else if (campo === 'qtd')       m.qtd       = parseFloat(v) || 0;
   salvar(); renderizar();
 }
 

@@ -1361,3 +1361,194 @@ body::before {
   color: var(--text3); text-transform: none;
   letter-spacing: 0; font-style: italic;
 }
+
+/* ═══════════════════════════════════════
+   INVESTIMENTO — versão reformulada
+═══════════════════════════════════════ */
+.investimento-row {
+  display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(24,182,232,0.08), rgba(24,182,232,0.03));
+  border: 1.5px solid rgba(24,182,232,0.30);
+  border-radius: var(--r-md);
+}
+
+.investimento-left {
+  display: flex; align-items: flex-start; gap: 10px; flex: 1; min-width: 180px;
+}
+
+.investimento-left > i {
+  color: var(--blue); font-size: 18px; flex-shrink: 0; margin-top: 2px;
+}
+
+.investimento-texts {
+  display: flex; flex-direction: column; gap: 2px;
+}
+
+.investimento-label {
+  font-size: 13px; font-weight: 700; color: var(--text);
+}
+
+.investimento-hint {
+  font-size: 10.5px; color: var(--text3); font-style: italic; line-height: 1.4;
+}
+
+.investimento-right {
+  display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+}
+
+.investimento-input-wrap {
+  display: flex; align-items: center; gap: 6px;
+}
+
+.investimento-edit {
+  width: 110px; text-align: right;
+  font-family: var(--mono); font-size: 15px; font-weight: 700;
+  padding: 8px 10px;
+  border: 1.5px solid rgba(24,182,232,0.40);
+  border-radius: 10px;
+  background: rgba(24,182,232,0.10);
+  color: var(--blue); outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.investimento-edit:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(24,182,232,0.15);
+}
+.investimento-edit::placeholder { color: var(--text3); font-weight: 400; font-size: 13px; }
+
+.btn-inv-clear {
+  width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid rgba(24,182,232,0.30);
+  background: rgba(24,182,232,0.08);
+  color: var(--text3); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; transition: all 0.18s;
+}
+.btn-inv-clear:hover {
+  background: rgba(255,45,77,0.10);
+  border-color: rgba(255,45,77,0.30);
+  color: var(--red);
+}
+
+/* ─── Bloco retorno do investimento ─── */
+.retorno-row {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 9px 14px;
+  background: rgba(141,63,224,0.06);
+  border: 1px dashed rgba(141,63,224,0.30);
+  border-radius: var(--r-sm);
+}
+
+.retorno-row > i {
+  color: var(--purple); font-size: 16px; flex-shrink: 0;
+}
+
+.retorno-label {
+  font-size: 11px; font-weight: 700; color: var(--purple);
+  text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+}
+
+.retorno-pills {
+  display: flex; align-items: center; gap: 7px; flex-wrap: wrap;
+}
+
+.retorno-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-family: var(--mono); font-size: 11.5px; font-weight: 600;
+  padding: 4px 11px; border-radius: 50px; white-space: nowrap;
+}
+
+.pill-blue {
+  background: rgba(24,182,232,0.12);
+  border: 1px solid rgba(24,182,232,0.28);
+  color: var(--blue);
+}
+.pill-mint {
+  background: rgba(20,199,173,0.12);
+  border: 1px solid rgba(20,199,173,0.30);
+  color: var(--mint2);
+}
+.pill-purple {
+  background: rgba(141,63,224,0.12);
+  border: 1px solid rgba(141,63,224,0.28);
+  color: var(--purple);
+}
+.pill-purple strong { font-weight: 800; }
+
+/* ═══════════════════════════════════════
+   GRID DE RESULTADOS — substitui margem-resultados
+═══════════════════════════════════════ */
+.margem-row {
+  display: flex; flex-direction: column; gap: 12px;
+  padding: 14px 16px;
+  background: linear-gradient(135deg, rgba(20,199,173,0.08), rgba(255,45,135,0.05));
+  border: 1.5px solid var(--mint-border);
+  border-radius: var(--r-md);
+}
+
+.margem-input-group {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12.5px; font-weight: 600; color: var(--text2);
+  white-space: nowrap;
+}
+
+.margem-input-group i { color: var(--mint2); font-size: 15px; }
+
+.resultados-grid {
+  display: flex;
+  flex-direction: row;
+  gap: 6px;
+}
+
+.res-bloco {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 10px 12px;
+  border-radius: var(--r-sm);
+  border: 1px solid transparent;
+}
+
+.res-label {
+  display: flex; align-items: center; gap: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.5px;
+  text-transform: uppercase; color: var(--text2);
+  white-space: nowrap;
+}
+.res-label i { font-size: 12px; }
+
+.res-valor {
+  font-family: var(--mono); font-size: 15px; font-weight: 700;
+  letter-spacing: -0.3px;
+}
+
+/* cores por bloco */
+.res-materiais   { background: rgba(255,45,135,0.06); border-color: rgba(255,45,135,0.18); }
+.res-materiais   .res-valor { color: var(--pink2); }
+
+.res-investimento { background: rgba(24,182,232,0.07); border-color: rgba(24,182,232,0.22); }
+.res-investimento .res-valor { color: var(--blue); }
+
+.res-custo-total { background: rgba(255,45,77,0.07); border-color: rgba(255,45,77,0.22); }
+.res-custo-total .res-valor { color: var(--red); }
+
+.res-venda       { background: rgba(20,199,173,0.08); border-color: rgba(20,199,173,0.28); }
+.res-venda       .res-valor { color: var(--mint2); }
+
+.res-lucro       { background: rgba(141,63,224,0.07); border-color: rgba(141,63,224,0.22); }
+.res-lucro       .res-valor { color: var(--purple); }
+
+.res-markup      { background: rgba(255,157,31,0.07); border-color: rgba(255,157,31,0.22); }
+.res-markup      .res-valor { color: var(--amber); }
+
+/* section title hint */
+.section-title-hint {
+  font-size: 10px; font-weight: 500;
+  color: var(--text3); text-transform: none;
+  letter-spacing: 0; font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .resultados-grid { grid-template-columns: repeat(2, 1fr); }
+  .investimento-row { flex-direction: column; align-items: stretch; }
+  .investimento-right { justify-content: flex-end; }
+}

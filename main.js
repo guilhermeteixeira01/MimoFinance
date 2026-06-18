@@ -11,6 +11,11 @@ if (process.env.NODE_ENV === 'development') {
 
 let serverPort = 3131;
 let mainWindow = null;
+let splashWindow = null;
+
+// Tempo mínimo (ms) que a tela de carregamento fica visível,
+// mesmo que o app esteja pronto antes disso (evita "flash" rápido demais)
+const SPLASH_MIN_TIME = 1800;
 
 // ── Configuração do auto-updater ──
 autoUpdater.autoDownload = true;          // baixa em background
@@ -78,6 +83,29 @@ function waitForServer(callback, tries = 0) {
   });
 }
 
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 380,
+    height: 420,
+    frame: false,
+    resizable: false,
+    movable: true,
+    transparent: true,
+    backgroundColor: '#00000000',
+    alwaysOnTop: true,
+    skipTaskbar: true,
+    icon: path.join(__dirname, 'icon.png'),
+    webPreferences: {
+      contextIsolation: true,
+      nodeIntegration: false
+    },
+    show: false,
+  });
+
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.once('ready-to-show', () => splashWindow.show());
+}
+
 function createWindow() {
   mainWindow = new BrowserWindow({
     width: 960,
@@ -96,6 +124,8 @@ function createWindow() {
 
     autoHideMenuBar: true,
     icon: path.join(__dirname, 'icon.png'),
+
+    show: false,
   });
 
   mainWindow.loadURL(`http://localhost:${serverPort}`);
@@ -105,12 +135,29 @@ function createWindow() {
     return { action: 'deny' };
   });
 
+  // Só mostra a janela principal (e fecha a splash) quando o conteúdo
+  // já estiver carregado e pronto para ser exibido.
+  mainWindow.once('ready-to-show', () => {
+    if (splashWindow && !splashWindow.isDestroyed()) {
+      splashWindow.close();
+      splashWindow = null;
+    }
+    mainWindow.show();
+  });
+
   setTimeout(() => setupUpdater(), 1000);
 }
 
 app.whenReady().then(() => {
+  const splashStart = Date.now();
+  createSplashWindow();
+
   startServer();
-  waitForServer(() => createWindow());
+  waitForServer(() => {
+    const elapsed = Date.now() - splashStart;
+    const remaining = Math.max(0, SPLASH_MIN_TIME - elapsed);
+    setTimeout(() => createWindow(), remaining);
+  });
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
