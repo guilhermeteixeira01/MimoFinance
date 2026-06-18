@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mimo Controle Financeiro</title>
+<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <div class="titlebar">
+    <div class="title">
+      <img src="icon.png">Mimo Controle Financeiro
+    </div>
+    <div class="window-buttons">
+      <button class="minimize" onclick="window.windowControls.minimize()" title="Minimizar">
+        <svg viewBox="0 0 7 7"><line x1="1" y1="3.5" x2="6" y2="3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+      <button class="maximize" onclick="window.windowControls.maximize()" title="Maximizar">
+        <svg viewBox="0 0 7 7"><path d="M4.5 1H6v1.5M2.5 6H1V4.5M6 4.5V6H4.5M1 2.5V1h1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      </button>
+      <button class="close" onclick="window.windowControls.close()" title="Fechar">
+        <svg viewBox="0 0 7 7"><path d="M1 1l5 5M6 1L1 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/></svg>
+      </button>
+    </div>
+  </div>
+
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon"><img src="icon.png"></div>
+      <span class="logo-text">Mimo Finance</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a class="nav-item active" href="#">
+        <i class="ti ti-layout-dashboard"></i>
+        <span>Visão Geral</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="main-content">
+
+    <header class="topbar">
+      <div class="topbar-left">
+        <h1 class="page-title">Calculadora de Preços</h1>
+        <p class="page-sub">Cadastre seus produtos, invistimentos e custos fixos para descobrir o preço ideal de venda</p>
+      </div>
+      <div class="topbar-right">
+        <button class="btn-add-top btn-add-global" onclick="document.getElementById('form-panel-global').classList.toggle('open')">
+          <i class="ti ti-receipt"></i> Custo Fixo
+        </button>
+        <button class="btn-add-top" onclick="document.getElementById('form-panel-produto').classList.toggle('open')">
+          <i class="ti ti-plus"></i> Novo Produto
+        </button>
+      </div>
+    </header>
+
+    <!-- Cards resumo geral -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon-wrap teal"><i class="ti ti-box"></i></div>
+        <div class="card-body">
+          <div class="card-label">Produtos cadastrados</div>
+          <div class="card-value" id="total-produtos">0</div>
+          <div class="card-sub">no seu catálogo</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon-wrap coral"><i class="ti ti-stack-2"></i></div>
+        <div class="card-body">
+          <div class="card-label">Custo total dos produtos</div>
+          <div class="card-value red" id="custo-geral">R$ 0,00</div>
+          <div class="card-sub">materiais + investimentos</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-icon-wrap purple"><i class="ti ti-trending-up"></i></div>
+        <div class="card-body">
+          <div class="card-label">Lucro estimado total</div>
+          <div class="card-value purple" id="lucro-geral">R$ 0,00</div>
+          <div class="card-sub">se vender pelo preço sugerido</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Custos Fixos (informativos) ── -->
+    <div class="section-header">
+      <div class="section-title">
+        <i class="ti ti-receipt" style="font-size:14px;color:var(--amber)"></i>
+        Custos Fixos <span class="section-title-hint">— visão geral, não entram no cálculo de cada produto</span>
+      </div>
+    </div>
+
+    <!-- Card resumo de custos fixos -->
+    <div class="cards cards-small">
+      <div class="card">
+        <div class="card-icon-wrap" style="background:rgba(255,157,31,0.15);border:1px solid rgba(255,157,31,0.3);color:var(--amber)">
+          <i class="ti ti-receipt-2"></i>
+        </div>
+        <div class="card-body">
+          <div class="card-label">Total de custos fixos</div>
+          <div class="card-value" style="color:var(--amber);font-size:20px" id="total-custos-globais">R$ 0,00</div>
+          <div class="card-sub">luz, água, aluguel, tempo…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form custo fixo -->
+    <div class="form-panel" id="form-panel-global">
+      <div class="form-panel-inner">
+        <div class="form-panel-title"><i class="ti ti-receipt"></i> Novo custo fixo</div>
+        <div class="form-gasto form-gasto-global">
+          <select id="cg-tipo">
+            <option value="luz">⚡ Conta de Luz</option>
+            <option value="agua">💧 Conta de Água</option>
+            <option value="internet">📶 Internet</option>
+            <option value="aluguel">🏠 Aluguel</option>
+            <option value="tempo">⏱ Tempo Trabalhado</option>
+            <option value="transporte">🚗 Transporte</option>
+            <option value="embalagem">📦 Embalagens Gerais</option>
+            <option value="marketing">📣 Marketing</option>
+            <option value="outros">• Outros</option>
+          </select>
+          <input type="text" id="cg-nome" placeholder="Descrição (opcional)" />
+          <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+            <span style="font-size:12px;color:var(--text2);font-family:var(--mono)">R$</span>
+            <input type="number" id="cg-valor" placeholder="Valor mensal" min="0" step="0.01" style="max-width:130px" />
+          </div>
+          <button class="btn-add" onclick="adicionarCustoGlobal()">
+            <i class="ti ti-plus"></i> Adicionar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista custos fixos -->
+    <div class="lista-custos-globais" id="lista-custos-globais">
+      <div class="cg-empty"><i class="ti ti-receipt-off"></i> Nenhum custo fixo cadastrado</div>
+    </div>
+
+    <!-- ── Produtos ── -->
+    <div class="section-header" style="margin-top:0.5rem">
+      <div class="section-title">
+        <i class="ti ti-package" style="font-size:14px;color:var(--pink2)"></i> Seus produtos
+      </div>
+    </div>
+
+    <!-- Form novo produto -->
+    <div class="form-panel" id="form-panel-produto">
+      <div class="form-panel-inner">
+        <div class="form-panel-title"><i class="ti ti-package"></i> Novo produto</div>
+        <div class="form-gasto">
+          <input type="text" id="nome-produto" placeholder="Nome do produto (ex: Caderno decorado A5)" />
+          <button class="btn-add" onclick="adicionarProduto()">
+            <i class="ti ti-plus"></i> Criar produto
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="lista-produtos" id="lista-produtos"></div>
+
+    <div>
+      <h1 class="Footer-Dev">Desenvolvido por <a href="https://github.com/guilhermeteixeira01" target="_blank">Guilherme Teixeira</a></h1>
+    </div>
+  </main>
+</div>
+
+<!-- Update Box -->
+<div id="update-box">
+  <div class="update-glow"></div>
+  <div class="update-header">
+    <div class="update-icon" id="update-icon"><i class="ti ti-download"></i></div>
+    <div class="update-titles">
+      <div class="update-title" id="update-title">Atualização disponível</div>
+      <div class="update-subtitle" id="update-subtitle">Preparando download...</div>
+    </div>
+    <button class="update-close" onclick="document.getElementById('update-box').classList.remove('visible')">
+      <i class="ti ti-x"></i>
+    </button>
+  </div>
+  <div class="update-progress-wrap" id="update-progress-wrap">
+    <div class="update-track"><div class="update-bar" id="update-bar"></div></div>
+    <div class="update-pct-row">
+      <span class="update-pct" id="update-pct">0%</span>
+      <div class="update-right-info">
+        <span class="update-transferred" id="update-transferred"></span>
+        <span class="update-speed" id="update-speed"></span>
+      </div>
+    </div>
+  </div>
+  <div class="update-error-msg" id="update-error-msg"></div>
+  <button class="btn-restart" id="btn-restart" onclick="instalarUpdate()">
+    <i class="ti ti-refresh"></i> Reiniciar e instalar
+  </button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

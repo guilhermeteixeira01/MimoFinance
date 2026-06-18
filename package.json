@@ -1,0 +1,57 @@
+{
+  "name": "mimo-controle-financeiro",
+  "version": "1.0.0",
+  "description": "App de Mimo Controle Financeiro",
+  "author": "guilhermeteixeira01",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:mac": "electron-builder --mac",
+    "build:linux": "electron-builder --linux"
+  },
+  "build": {
+    "appId": "com.guilhermeteixeira01.controle-financeiro",
+    "productName": "Mimo Controle Financeiro",
+    "publish": {
+      "provider": "github",
+      "owner": "guilhermeteixeira01",
+      "repo": "MimoFinance"
+    },
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "server.js",
+      "preload.js",
+      "app.js",
+      "index.html",
+      "index.css",
+      "dados.json",
+      "icon.png"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.png",
+      "sign": null,
+      "signingHashAlgorithms": null
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "pt_BR"
+      ],
+      "language": "1046"
+    }
+  },
+  "dependencies": {
+    "electron-updater": "^6.1.7"
+  },
+  "devDependencies": {
+    "electron": "^29.0.0",
+    "electron-builder": "^24.0.0",
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}
