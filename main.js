@@ -15,7 +15,7 @@ let splashWindow = null;
 
 // Tempo mínimo (ms) que a tela de carregamento fica visível,
 // mesmo que o app esteja pronto antes disso (evita "flash" rápido demais)
-const SPLASH_MIN_TIME = 1800;
+const SPLASH_MIN_TIME = 2800;
 
 // ── Configuração do auto-updater ──
 autoUpdater.autoDownload = true;          // baixa em background
