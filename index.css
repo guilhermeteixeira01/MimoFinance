@@ -141,7 +141,7 @@ body::before {
   align-items: center;
   justify-content: center;
   width: 45px; height: 45px;
-  border-radius: 14px;
+  border-radius: 50px;
   background: linear-gradient(135deg, var(--pink), var(--pink3));
   display: flex; align-items: center; justify-content: center;
   font-size: 20px; color: #fff;
@@ -151,6 +151,7 @@ body::before {
 
 .logo-icon img {
   width: 50px;
+  border-radius: 50px;
 }
 
 .logo-text {
@@ -1212,6 +1213,7 @@ body::before {
   background: rgba(255,157,31,0.05);
   border: 1px dashed rgba(255,157,31,0.28);
   border-radius: var(--r-md);
+  margin-top: 10px;
   display: flex; align-items: center; justify-content: center; gap: 8px;
 }
 
@@ -1223,6 +1225,7 @@ body::before {
   border-radius: var(--r-md);
   box-shadow: 0 3px 12px rgba(255,157,31,0.08);
   transition: border-color 0.18s, transform 0.15s;
+  margin-top: 10px;
 }
 
 .cg-item:hover {
@@ -1545,6 +1548,80 @@ body::before {
   font-size: 10px; font-weight: 500;
   color: var(--text3); text-transform: none;
   letter-spacing: 0; font-style: italic;
+}
+
+/* ═══════════════════════════════════════
+   MATERIAIS GLOBAIS
+═══════════════════════════════════════ */
+.lista-materiais-globais {
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+.mg-item {}
+
+.mg-unidade-edit {
+  font-size: 11px; font-weight: 600;
+  color: var(--pink2);
+  background: rgba(255,45,135,0.08);
+  border: 1px solid rgba(255,45,135,0.22);
+  border-radius: 6px;
+  padding: 2px 7px;
+  width: 60px;
+  text-align: center;
+  outline: none;
+}
+.mg-unidade-edit:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 2px rgba(255,45,135,0.12);
+}
+
+/* ── Catálogo dentro do produto ── */
+.mat-catalogo-row {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, rgba(255,45,135,0.06), rgba(255,45,135,0.02));
+  border: 1.5px solid rgba(255,45,135,0.22);
+  border-radius: var(--r-sm);
+}
+
+.mat-catalogo-sel {
+  flex: 1; min-width: 200px;
+  font-family: var(--sans);
+  font-size: 12.5px; font-weight: 600;
+  color: var(--text);
+  background: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,45,135,0.25);
+  border-radius: 8px;
+  padding: 6px 10px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.18s;
+}
+.mat-catalogo-sel:focus {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 3px rgba(255,45,135,0.10);
+}
+
+.btn-catalogo {
+  background: linear-gradient(135deg, var(--pink), var(--pink3)) !important;
+  color: #fff !important;
+  border-color: var(--pink) !important;
+  flex-shrink: 0;
+}
+.btn-catalogo:hover {
+  filter: brightness(1.1);
+}
+
+.mat-divider {
+  display: flex; align-items: center; gap: 10px;
+  color: var(--text3); font-size: 11px; font-weight: 600;
+  width: 100%; margin: 2px 0;
+}
+.mat-divider::before, .mat-divider::after {
+  content: '';
+  flex: 1; height: 1px;
+  background: var(--pink-border);
+  opacity: 0.5;
 }
 
 @media (max-width: 600px) {

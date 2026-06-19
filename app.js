@@ -1,5 +1,6 @@
 let produtos = [];
 let custosGlobais = [];
+let materiaisGlobais = [];
 
 function fmt(v) {
   return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -11,11 +12,13 @@ async function carregar() {
     const data = await res.json();
     produtos = data.produtos || [];
     custosGlobais = data.custosGlobais || [];
+    materiaisGlobais = data.materiaisGlobais || [];
   } catch (e) {
     console.error('Erro ao carregar dados:', e);
   }
   renderizar();
   renderizarCustosGlobais();
+  renderizarMateriaisGlobais();
 }
 
 async function salvar() {
@@ -23,7 +26,7 @@ async function salvar() {
     await fetch('/api/dados', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ produtos, custosGlobais }, null, 2)
+      body: JSON.stringify({ produtos, custosGlobais, materiaisGlobais }, null, 2)
     });
   } catch (e) {
     console.error('Erro ao salvar dados:', e);
@@ -66,7 +69,118 @@ function calcProduto(p) {
   return { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar };
 }
 
-// ── Custos Globais (informativos) ──────────────────────────
+// ── Abas ──────────────────────────────────────────────────
+function mostrarAba(aba, navEl) {
+  document.querySelectorAll('.aba-content').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  const target = document.getElementById('aba-' + aba);
+  if (target) target.style.display = '';
+  if (navEl) navEl.classList.add('active');
+}
+
+// ── Materiais Globais ──────────────────────────────────────
+function adicionarMaterialGlobal() {
+  const nomeEl   = document.getElementById('mg-nome');
+  const valorEl  = document.getElementById('mg-valor');
+  const unidEl   = document.getElementById('mg-unidade');
+
+  const nome   = nomeEl.value.trim();
+  const valor  = parseFloat(valorEl.value);
+  const unidade = unidEl.value.trim() || 'un';
+
+  if (!nome || isNaN(valor) || valor < 0) return;
+
+  materiaisGlobais.push({ id: Date.now(), nome, valorUnit: valor, unidade });
+  nomeEl.value  = '';
+  valorEl.value = '';
+  unidEl.value  = '';
+
+  document.getElementById('form-panel-mat-global').classList.remove('open');
+  salvar();
+  renderizarMateriaisGlobais();
+}
+
+function removerMaterialGlobal(idx) {
+  if (!confirm(`Remover "${materiaisGlobais[idx].nome}"? Ele continuará nos produtos onde foi usado.`)) return;
+  materiaisGlobais.splice(idx, 1);
+  salvar();
+  renderizarMateriaisGlobais();
+  renderizar(); // atualiza dropdown nos produtos abertos
+}
+
+function editarMaterialGlobal(idx, campo, v) {
+  if (campo === 'nome')      materiaisGlobais[idx].nome     = v;
+  if (campo === 'valorUnit') materiaisGlobais[idx].valorUnit = parseFloat(v) || 0;
+  if (campo === 'unidade')   materiaisGlobais[idx].unidade  = v;
+  salvar();
+  renderizarMateriaisGlobais();
+  renderizar(); // re-calcula produtos que usam este material
+}
+
+function renderizarMateriaisGlobais() {
+  const lista = document.getElementById('lista-materiais-globais');
+  if (!lista) return;
+
+  if (materiaisGlobais.length === 0) {
+    lista.innerHTML = '<div class="cg-empty"><i class="ti ti-packages"></i> Nenhum material cadastrado ainda</div>';
+    return;
+  }
+
+  lista.innerHTML = materiaisGlobais.map((m, idx) => `
+    <div class="cg-item mg-item">
+      <div class="cg-icon-wrap" style="background:rgba(255,45,135,0.12);border:1px solid rgba(255,45,135,0.28);color:var(--pink2)">
+        <i class="ti ti-box"></i>
+      </div>
+      <div class="cg-info" style="flex:1">
+        <input class="cg-nome-edit" type="text" value="${m.nome}"
+          onchange="editarMaterialGlobal(${idx}, 'nome', this.value)" />
+        <span class="cg-tipo-badge">
+          <input class="mg-unidade-edit" type="text" value="${m.unidade || 'un'}" title="Unidade"
+            onchange="editarMaterialGlobal(${idx}, 'unidade', this.value)" />
+        </span>
+      </div>
+      <div class="cg-valor-wrap">
+        <span class="cg-prefix">R$</span>
+        <input class="cg-valor-edit" type="number" min="0" step="0.01"
+          value="${(Number(m.valorUnit) || 0).toFixed(2)}"
+          onchange="editarMaterialGlobal(${idx}, 'valorUnit', this.value)" />
+      </div>
+      <button class="btn-icon" onclick="removerMaterialGlobal(${idx})" title="Remover">
+        <i class="ti ti-trash"></i>
+      </button>
+    </div>`).join('');
+}
+
+// ── Adicionar material do catálogo a um produto ────────────
+function adicionarMaterialDoCatalogo(pi) {
+  const card = document.querySelector(`.product-card[data-index="${pi}"]`);
+  if (!card) return;
+  const sel = card.querySelector('.mat-catalogo-sel');
+  const qtdEl = card.querySelector('.mat-catalogo-qtd');
+  if (!sel) return;
+
+  const mgId = parseInt(sel.value);
+  const qtd  = parseFloat(qtdEl.value) || 1;
+  if (!mgId) return;
+
+  const mg = materiaisGlobais.find(m => m.id === mgId);
+  if (!mg) return;
+
+  if (!produtos[pi].materiais) produtos[pi].materiais = [];
+  produtos[pi].materiais.push({
+    id: Date.now(),
+    nome: mg.nome,
+    valorUnit: mg.valorUnit,
+    qtd,
+    mgId: mg.id   // referência ao catálogo (informativo)
+  });
+
+  sel.value    = '';
+  qtdEl.value  = '1';
+  salvar(); renderizar();
+}
+
+
 
 const TIPOS_CUSTO = [
   { valor: 'luz',        label: 'Conta de Luz',      icon: 'ti-bolt' },
@@ -251,14 +365,20 @@ function renderizar() {
 
       <!-- Adicionar material -->
       <div class="material-add-row">
-        <input type="text" class="mat-add-nome" placeholder="Nome do material" />
-        <span class="mat-prefix">R$</span>
-        <input type="number" class="mat-add-valor" placeholder="Valor" min="0" step="0.01" />
-        <span class="mat-x">x</span>
-        <input type="number" class="mat-add-qtd" placeholder="Qtd" min="1" step="1" value="1" />
-        <button class="btn-add-mini" onclick="adicionarMaterial(${pi})">
-          <i class="ti ti-plus"></i> Material
-        </button>
+        ${materiaisGlobais.length > 0 ? `
+        <div class="mat-catalogo-row">
+          <i class="ti ti-packages" style="color:var(--pink2);font-size:15px;flex-shrink:0"></i>
+          <select class="mat-catalogo-sel">
+            <option value="">— Escolher do catálogo —</option>
+            ${materiaisGlobais.map(mg => `<option value="${mg.id}">${mg.nome} (${fmt(mg.valorUnit)}/${mg.unidade || 'un'})</option>`).join('')}
+          </select>
+          <span class="mat-x">x</span>
+          <input type="number" class="mat-catalogo-qtd" placeholder="Qtd" min="0.01" step="0.01" value="1" style="max-width:70px" />
+          <button class="btn-add-mini btn-catalogo" onclick="adicionarMaterialDoCatalogo(${pi})">
+            <i class="ti ti-plus"></i> Usar
+          </button>
+        </div>
+        <div class="mat-divider"><span></span></div>` : ''}
       </div>
 
       <!-- Investimento -->
@@ -408,6 +528,9 @@ function editarMaterial(pi, mi, campo, v) {
 
 document.addEventListener('DOMContentLoaded', () => {
   carregar();
+  // inicia mostrando a aba visao-geral
+  mostrarAba('visao-geral', document.querySelector('.nav-item'));
+
   const nomeProdutoInput = document.getElementById('nome-produto');
   if (nomeProdutoInput) {
     nomeProdutoInput.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarProduto(); });
@@ -415,6 +538,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const cgValorInput = document.getElementById('cg-valor');
   if (cgValorInput) {
     cgValorInput.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarCustoGlobal(); });
+  }
+  const mgValorInput = document.getElementById('mg-valor');
+  if (mgValorInput) {
+    mgValorInput.addEventListener('keydown', e => { if (e.key === 'Enter') adicionarMaterialGlobal(); });
   }
 });
 

@@ -35,14 +35,58 @@
       <span class="logo-text">Mimo Finance</span>
     </div>
     <nav class="sidebar-nav">
-      <a class="nav-item active" href="#">
+      <a class="nav-item active" href="#" onclick="mostrarAba('visao-geral', this)">
         <i class="ti ti-layout-dashboard"></i>
         <span>Visão Geral</span>
+      </a>
+      <a class="nav-item" href="#" onclick="mostrarAba('materiais', this)">
+        <i class="ti ti-packages"></i>
+        <span>Materiais</span>
       </a>
     </nav>
   </aside>
 
   <main class="main-content">
+    <!-- ══ ABA: MATERIAIS ══ -->
+    <div id="aba-materiais" class="aba-content" style="display:none">
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 class="page-title">Materiais</h1>
+          <p class="page-sub">Cadastre seus materiais aqui e reutilize-os rapidamente ao montar produtos</p>
+        </div>
+        <div class="topbar-right">
+          <button class="btn-add-top" onclick="document.getElementById('form-panel-mat-global').classList.toggle('open')">
+            <i class="ti ti-plus"></i> Novo Material
+          </button>
+        </div>
+      </header>
+
+      <!-- Form novo material global -->
+      <div class="form-panel" id="form-panel-mat-global">
+        <div class="form-panel-inner">
+          <div class="form-panel-title"><i class="ti ti-packages"></i> Novo material</div>
+          <div class="form-gasto">
+            <input type="text" id="mg-nome" placeholder="Nome do material (ex: Fita washi 15mm)" />
+            <div style="display:flex;align-items:center;gap:6px;flex-shrink:0">
+              <span style="font-size:12px;color:var(--text2);font-family:var(--mono)">R$</span>
+              <input type="number" id="mg-valor" placeholder="Valor unitário" min="0" step="0.01" style="max-width:130px" />
+            </div>
+            <input type="text" id="mg-unidade" placeholder="Unidade (ex: m, un, g)" style="max-width:110px" />
+            <button class="btn-add" onclick="adicionarMaterialGlobal()">
+              <i class="ti ti-plus"></i> Adicionar
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lista materiais globais -->
+      <div class="lista-materiais-globais" id="lista-materiais-globais">
+        <div class="cg-empty"><i class="ti ti-packages"></i> Nenhum material cadastrado ainda</div>
+      </div>
+    </div>
+
+    <!-- ══ ABA: VISÃO GERAL (conteúdo original) ══ -->
+    <div id="aba-visao-geral" class="aba-content">
 
     <header class="topbar">
       <div class="topbar-left">
@@ -167,6 +211,7 @@
     <div>
       <h1 class="Footer-Dev">Desenvolvido por <a href="https://github.com/guilhermeteixeira01" target="_blank">Guilherme Teixeira</a></h1>
     </div>
+    </div><!-- /aba-visao-geral -->
   </main>
 </div>
 

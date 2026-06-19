@@ -1,8 +1,8 @@
 {
   "name": "mimo-controle-financeiro",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "App de Mimo Controle Financeiro",
-  "author": "guilhermeteixeira01",
+  "author": "guilherme teixeira",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
