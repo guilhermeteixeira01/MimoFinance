@@ -34,22 +34,39 @@ async function salvar() {
 }
 
 /**
+ * Retorna o custo fixo diário total (total mensal ÷ 30).
+ */
+function getCustoFixoDiario() {
+  return custosGlobais.reduce((s, c) => s + (Number(c.valor) || 0), 0) / 30;
+}
+
+/**
  * Calcula todos os valores de um produto.
  *
- * custoTotal = materiais + investimento
+ * custoTotal = materiais + investimento + rateio de custos fixos por unidade
+ *   → rateio = (custo fixo diário) / (unidades por dia definidas no produto)
  * precoVenda = custoTotal / (1 - margem/100)
  *   → margem é sempre sobre o preço de venda (não sobre o custo)
  *   → Ex.: custo R$10, margem 30% → preço = R$14,29; lucro = R$4,29
  *
  * retornoInvestimento = quantas unidades precisa vender para cobrir só o investimento
- * retornoTotal        = quantas unidades precisa vender para cobrir custo total + investimento
  */
 function calcProduto(p) {
   const custoMateriais = (p.materiais || []).reduce(
     (s, m) => s + (Number(m.qtd) || 0) * (Number(m.valorUnit) || 0), 0
   );
   const investimento = Number(p.investimento) || 0;
-  const custoTotal   = custoMateriais + investimento;
+
+  // Rateio de custo fixo: custo fixo diário ÷ unidades/dia deste produto
+  // (só entra no cálculo se o toggle "rateioAtivo" estiver ligado)
+  const rateioAtivo = p.rateioAtivo !== false;
+  const unidadesPorDia = Number(p.unidadesPorDia) || 0;
+  const custoFixoDiario = getCustoFixoDiario();
+  const rateioCustoFixo = (rateioAtivo && unidadesPorDia > 0 && custoFixoDiario > 0)
+    ? custoFixoDiario / unidadesPorDia
+    : 0;
+
+  const custoTotal = custoMateriais + investimento + rateioCustoFixo;
 
   let margem = Number(p.margem);
   if (isNaN(margem)) margem = 30;
@@ -61,12 +78,11 @@ function calcProduto(p) {
   const markup     = custoTotal > 0 ? ((precoVenda / custoTotal) - 1) * 100 : 0;
 
   // Quantas unidades vender para recuperar o investimento
-  // (o lucro por unidade é "lucro"; o investimento precisa ser pago por esse lucro)
   const unidadesParaRecuperar = (lucro > 0 && investimento > 0)
     ? Math.ceil(investimento / lucro)
     : 0;
 
-  return { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar };
+  return { custoMateriais, investimento, rateioAtivo, rateioCustoFixo, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar };
 }
 
 // ── Abas ──────────────────────────────────────────────────
@@ -223,14 +239,26 @@ function adicionarCustoGlobal() {
 function removerCustoGlobal(idx) {
   custosGlobais.splice(idx, 1);
   salvar();
-  renderizarCustosGlobais();
+  renderizarCustosGlobais(); // já chama renderizar() internamente
 }
 
 function editarCustoGlobal(idx, campo, v) {
   if (campo === 'valor') custosGlobais[idx].valor = parseFloat(v) || 0;
   else if (campo === 'nome') custosGlobais[idx].nome = v;
   salvar();
-  renderizarCustosGlobais();
+  renderizarCustosGlobais(); // já chama renderizar() internamente
+}
+
+function editarUnidadesPorDia(pi, v) {
+  const val = parseFloat(v);
+  produtos[pi].unidadesPorDia = isNaN(val) || val <= 0 ? 0 : val;
+  salvar(); renderizar();
+}
+
+function toggleRateioCustoFixo(pi) {
+  const ativoAtual = produtos[pi].rateioAtivo !== false;
+  produtos[pi].rateioAtivo = !ativoAtual;
+  salvar(); renderizar();
 }
 
 function renderizarCustosGlobais() {
@@ -238,9 +266,16 @@ function renderizarCustosGlobais() {
   if (!lista) return;
 
   const totalGlobal = custosGlobais.reduce((s, c) => s + (Number(c.valor) || 0), 0);
+  const diarioGlobal = totalGlobal / 30;
 
   const elTotalGlobal = document.getElementById('total-custos-globais');
   if (elTotalGlobal) elTotalGlobal.textContent = fmt(totalGlobal);
+
+  const elDiarioGlobal = document.getElementById('custo-fixo-diario');
+  if (elDiarioGlobal) elDiarioGlobal.textContent = fmt(diarioGlobal);
+
+  // Atualiza produtos pois o rateio de custo fixo pode ter mudado
+  renderizar();
 
   if (custosGlobais.length === 0) {
     lista.innerHTML = '<div class="cg-empty"><i class="ti ti-receipt-off"></i> Nenhum custo fixo cadastrado</div>';
@@ -298,7 +333,9 @@ function renderizar() {
   }
 
   lista.innerHTML = produtos.map((p, pi) => {
-    const { custoMateriais, investimento, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar } = calcProduto(p);
+    const { custoMateriais, investimento, rateioAtivo, rateioCustoFixo, custoTotal, margem, precoVenda, lucro, markup, unidadesParaRecuperar } = calcProduto(p);
+    const unidadesPorDia = Number(p.unidadesPorDia) || 0;
+    const temCustoFixo = getCustoFixoDiario() > 0;
 
     const materiaisHtml = (p.materiais || []).map((m, mi) => {
       const subtotal = (Number(m.qtd) || 0) * (Number(m.valorUnit) || 0);
@@ -410,6 +447,41 @@ function renderizar() {
       <!-- Retorno do investimento -->
       ${retornoHtml}
 
+      <!-- Rateio de custos fixos -->
+      ${temCustoFixo ? `
+      <div class="custo-fixo-row${rateioAtivo ? '' : ' custo-fixo-inativo'}">
+        <div class="custo-fixo-left">
+          <i class="ti ti-receipt-2"></i>
+          <div class="custo-fixo-texts">
+            <div class="custo-fixo-label-row">
+              <span class="custo-fixo-label">Rateio de custos fixos</span>
+              <label class="toggle-switch" title="${rateioAtivo ? 'Desativar rateio de custo fixo' : 'Ativar rateio de custo fixo'}">
+                <input type="checkbox" ${rateioAtivo ? 'checked' : ''} onchange="toggleRateioCustoFixo(${pi})" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+            <span class="custo-fixo-hint">${rateioAtivo ? 'Quantas unidades deste produto você produz por dia?' : 'Desativado — este produto não recebe rateio de custo fixo'}</span>
+          </div>
+        </div>
+        ${rateioAtivo ? `
+        <div class="custo-fixo-right">
+          <div class="custo-fixo-input-wrap">
+            <input type="number" class="custo-fixo-unid-edit" min="0.1" step="0.1"
+              value="${unidadesPorDia > 0 ? unidadesPorDia : ''}"
+              placeholder="unid/dia"
+              title="Unidades produzidas por dia"
+              onchange="editarUnidadesPorDia(${pi}, this.value)" />
+            <span class="custo-fixo-unid-label">unid/dia</span>
+          </div>
+          ${rateioCustoFixo > 0 ? `
+          <div class="custo-fixo-pills">
+            <span class="retorno-pill pill-amber">
+              <i class="ti ti-receipt-2"></i> Custo fixo/unidade: <strong>${fmt(rateioCustoFixo)}</strong>
+            </span>
+          </div>` : `<span class="custo-fixo-zero-hint">Informe as unidades/dia para calcular</span>`}
+        </div>` : ''}
+      </div>` : ''}
+
       <!-- Margem e resultados -->
       <div class="margem-row">
         <div class="margem-input-group">
@@ -429,6 +501,11 @@ function renderizar() {
           <div class="res-bloco res-investimento">
             <span class="res-label"><i class="ti ti-cash"></i> Investimento</span>
             <strong class="res-valor">${fmt(investimento)}</strong>
+          </div>` : ''}
+          ${rateioCustoFixo > 0 ? `
+          <div class="res-bloco res-custo-fixo">
+            <span class="res-label"><i class="ti ti-receipt-2"></i> Custos fixos</span>
+            <strong class="res-valor" style="color:var(--amber)">${fmt(rateioCustoFixo)}</strong>
           </div>` : ''}
           <div class="res-bloco res-custo-total">
             <span class="res-label"><i class="ti ti-stack-2"></i> Custo total</span>

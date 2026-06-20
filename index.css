@@ -111,11 +111,12 @@ body::before {
   display: flex;
   flex-direction: column;
   padding: 0;
-  margin-top: 2rem;
-  position: sticky;
-  top: 0;
-  height: 100vh;
+  position: fixed;
+  top: 36px;
+  left: 0;
+  height: calc(100vh - 36px);
   overflow: hidden;
+  z-index: 50;
 }
 
 /* inner glow on sidebar */
@@ -236,6 +237,7 @@ body::before {
 .main-content {
   flex: 1; min-width: 0;
   margin-top: 2rem;
+  margin-left: 230px;
   padding: 1.75rem 2rem;
   display: flex; flex-direction: column; gap: 1.5rem;
   overflow-y: auto;
@@ -320,6 +322,7 @@ body::before {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 14px;
+  margin: 10px;
 }
 
 .card {
@@ -504,7 +507,7 @@ body::before {
 @media (max-width: 960px) {
   .content-grid { grid-template-columns: 1fr; }
   .sidebar { display: none; }
-  .main-content { padding: 1rem; }
+  .main-content { padding: 1rem; margin-left: 0; }
 }
 
 .section-header {
@@ -974,7 +977,7 @@ body::before {
 /* ═══════════════════════════════════════
    PRODUTOS / MATERIAIS / MARGEM DE LUCRO
 ═══════════════════════════════════════ */
-.lista-produtos { display: flex; flex-direction: column; gap: 16px; }
+.lista-produtos { display: flex; flex-direction: column; gap: 16px; margin: 10px; }
 
 .product-card {
   background: linear-gradient(135deg, rgba(255,255,255,0.99), rgba(255,224,238,0.80));
@@ -1624,8 +1627,155 @@ body::before {
   opacity: 0.5;
 }
 
+/* ── Rateio de Custos Fixos no produto ─────────────────────── */
+.custo-fixo-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255,157,31,0.07);
+  border: 1px solid rgba(255,157,31,0.22);
+  border-radius: 10px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.custo-fixo-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 160px;
+}
+.custo-fixo-left > i {
+  font-size: 17px;
+  color: var(--amber);
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.custo-fixo-texts {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.custo-fixo-label-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.custo-fixo-row.custo-fixo-inativo {
+  opacity: 0.55;
+}
+.custo-fixo-row.custo-fixo-inativo .custo-fixo-left > i {
+  color: var(--text3);
+}
+
+/* ── Toggle switch ── */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 38px;
+  height: 21px;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.toggle-switch input {
+  position: absolute;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  cursor: pointer;
+}
+.toggle-slider {
+  position: absolute;
+  inset: 0;
+  background: rgba(132,83,110,0.28);
+  border-radius: 999px;
+  transition: background 0.18s;
+  pointer-events: none;
+}
+.toggle-slider::before {
+  content: '';
+  position: absolute;
+  left: 3px; top: 3px;
+  width: 15px; height: 15px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  transition: transform 0.18s;
+}
+.toggle-switch input:checked ~ .toggle-slider {
+  background: var(--amber);
+}
+.toggle-switch input:checked ~ .toggle-slider::before {
+  transform: translateX(17px);
+}
+.toggle-switch input:focus-visible ~ .toggle-slider {
+  outline: 2px solid var(--amber);
+  outline-offset: 2px;
+}
+.custo-fixo-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+.custo-fixo-hint {
+  font-size: 11px;
+  color: var(--text2);
+}
+.custo-fixo-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+.custo-fixo-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.custo-fixo-unid-edit {
+  width: 80px;
+  padding: 5px 8px;
+  border-radius: 7px;
+  border: 1px solid rgba(255,157,31,0.35);
+  background: rgba(255,157,31,0.10);
+  color: var(--text);
+  font-size: 13px;
+  font-family: var(--mono);
+  text-align: right;
+  outline: none;
+}
+.custo-fixo-unid-edit:focus {
+  border-color: var(--amber);
+  background: rgba(255,157,31,0.16);
+}
+.custo-fixo-unid-label {
+  font-size: 12px;
+  color: var(--text2);
+}
+.custo-fixo-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.custo-fixo-zero-hint {
+  font-size: 11px;
+  color: var(--text3);
+  font-style: italic;
+}
+.pill-amber {
+  background: rgba(255,157,31,0.14);
+  border: 1px solid rgba(255,157,31,0.32);
+  color: var(--amber);
+}
+
 @media (max-width: 600px) {
   .resultados-grid { grid-template-columns: repeat(2, 1fr); }
   .investimento-row { flex-direction: column; align-items: stretch; }
   .investimento-right { justify-content: flex-end; }
+  .custo-fixo-row { flex-direction: column; }
+  .custo-fixo-right { align-items: flex-start; }
 }
