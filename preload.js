@@ -11,5 +11,6 @@ contextBridge.exposeInMainWorld('updater', {
 contextBridge.exposeInMainWorld('windowControls', {
   minimize: () => ipcRenderer.send('window-minimize'),
   maximize: () => ipcRenderer.send('window-maximize'),
-  close: () => ipcRenderer.send('window-close')
+  close: () => ipcRenderer.send('window-close'),
+  onMaximizeChange: (cb) => ipcRenderer.on('maximize-state', (_, isMax) => cb(isMax)),
 });

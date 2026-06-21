@@ -74,14 +74,56 @@ html { scroll-behavior: smooth; }
 
 body {
   font-family: var(--sans);
-  background: var(--bg);
+  background: transparent;
   color: var(--text);
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Window Frame ───
+   Janela do Electron é transparente (main.js); este wrapper recorta
+   tudo (titlebar, sidebar, conteúdo) com cantos arredondados reais.
+   O transform força os elementos position:fixed internos (.titlebar,
+   .sidebar) a ficarem contidos aqui, em vez do viewport — por isso
+   o overflow:hidden + border-radius consegue recortá-los também.
+
+   IMPORTANTE: este elemento só RECORTA (overflow:hidden) — não rola.
+   O scrollbar nativo do Chromium não respeita corretamente o
+   border-radius quando overflow:auto/scroll está no MESMO elemento
+   que tem o raio (ele "vaza" reto pelo canto). Por isso a rolagem de
+   verdade fica num wrapper filho (.window-scroll), e este aqui só
+   recorta o resultado em formato arredondado por fora.
+*/
+.window-frame {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--bg);
+  transform: translateZ(0);
+  box-shadow: 0 0 0 1px rgba(255,45,135,0.18), 0 16px 50px rgba(60,10,35,0.35);
+  transition: border-radius 0.15s, box-shadow 0.15s;
+}
+
+/* Wrapper que de fato rola o conteúdo (tudo, exceto a titlebar, que
+   fica fixa e fora deste container) */
+.window-scroll {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
   overflow-x: hidden;
 }
 
+/* Quando maximizada, a janela ocupa a tela toda — cantos retos e sem
+   sombra (do contrário pareceria "flutuando" estranho na tela cheia) */
+.window-frame.is-maximized {
+  border-radius: 0;
+  box-shadow: none;
+}
+
 /* ─── background texture: halo de cor forte + papel pontilhado (estilo caderno) ─── */
-body::before {
+.window-frame::before {
   content: '';
   position: fixed; inset: 0; z-index: 0; pointer-events: none;
   background-image:
@@ -891,10 +933,10 @@ body::before {
 
   padding-left: 12px;
 
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(10px);
+  background: rgba(255,240,247,0.97);
 
   border-bottom: 1px solid rgba(255,111,168,0.15);
+  border-radius: 14px 14px 0 0;
 
   color: var(--text);
   font-size: 13px;

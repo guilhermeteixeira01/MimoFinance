@@ -1,14 +1,19 @@
 {
   "name": "mimo-controle-financeiro",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "App de Mimo Controle Financeiro",
   "author": "guilherme teixeira",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "build:win": "electron-builder --win",
-    "build:mac": "electron-builder --mac",
-    "build:linux": "electron-builder --linux"
+    "build": "electron-builder --publish never",
+    "build:win": "electron-builder --win --publish never",
+    "build:mac": "electron-builder --mac --publish never",
+    "build:linux": "electron-builder --linux --publish never",
+    "release": "electron-builder --publish always",
+    "release:win": "electron-builder --win --publish always",
+    "release:mac": "electron-builder --mac --publish always",
+    "release:linux": "electron-builder --linux --publish always"
   },
   "build": {
     "appId": "com.guilhermeteixeira01.controle-financeiro",

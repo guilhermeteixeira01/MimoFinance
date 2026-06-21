@@ -1,7 +1,7 @@
-const { app, BrowserWindow, shell, dialog, ipcMain } = require('electron');
-const { autoUpdater } = require('electron-updater');
+const { app, BrowserWindow, shell, dialog, ipcMain, screen } = require('electron');
 const path = require('path');
 const http = require('http');
+const autoUpdate = require('./auto-update.js');
 
 if (process.env.NODE_ENV === 'development') {
   require('electron-reload')(__dirname, {
@@ -17,40 +17,25 @@ let splashWindow = null;
 // mesmo que o app esteja pronto antes disso (evita "flash" rápido demais)
 const SPLASH_MIN_TIME = 2800;
 
-// ── Configuração do auto-updater ──
-autoUpdater.autoDownload = true;          // baixa em background
-autoUpdater.autoInstallOnAppQuit = true;  // instala quando o app fechar
+// ── Maximizar (manual) ──
+// Janelas frame:false + transparent:true têm um bug conhecido no Windows:
+// o maximize() nativo às vezes calcula o tamanho errado (estoura a tela,
+// cobre a barra de tarefas, deixa sobras). Por isso controlamos isso na
+// mão: guardamos o tamanho/posição normal e, ao maximizar, ajustamos a
+// janela para a área útil real da tela (workArea).
+let isMaximized = false;
+let normalBounds = null;
 
-function setupUpdater() {
-  // Verifica atualizações silenciosamente ao iniciar
-  autoUpdater.checkForUpdatesAndNotify();
-
-  autoUpdater.on('update-available', (info) => {
-    mainWindow.webContents.send('update-available', { version: info.version });
-  });
-
-  autoUpdater.on('download-progress', (progress) => {
-    mainWindow.webContents.send('update-progress', {
-      percent: Math.round(progress.percent),
-      transferred: progress.transferred,
-      total: progress.total,
-      bytesPerSecond: progress.bytesPerSecond
-    });
-  });
-
-  autoUpdater.on('update-downloaded', (info) => {
-    mainWindow.webContents.send('update-downloaded', { version: info.version });
-  });
-
-  autoUpdater.on('error', (err) => {
-    console.error('Erro no auto-updater:', err);
-    mainWindow.webContents.send('update-error', { message: err.message });
-  });
+function setMaximizedState(maximized) {
+  isMaximized = maximized;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('maximize-state', isMaximized);
+  }
 }
 
 // IPC: renderer pede para reiniciar e instalar
 ipcMain.on('install-update', () => {
-  autoUpdater.quitAndInstall();
+  autoUpdate.quitAndInstall();
 });
 
 ipcMain.on('window-minimize', () => {
@@ -58,10 +43,16 @@ ipcMain.on('window-minimize', () => {
 });
 
 ipcMain.on('window-maximize', () => {
-  if (mainWindow.isMaximized()) {
-    mainWindow.unmaximize();
+  if (!mainWindow) return;
+
+  if (!isMaximized) {
+    normalBounds = mainWindow.getBounds();
+    const display = screen.getDisplayMatching(normalBounds) || screen.getPrimaryDisplay();
+    mainWindow.setBounds(display.workArea);
+    setMaximizedState(true);
   } else {
-    mainWindow.maximize();
+    if (normalBounds) mainWindow.setBounds(normalBounds);
+    setMaximizedState(false);
   }
 });
 
@@ -115,7 +106,9 @@ function createWindow() {
   
     frame: false,
   
-    backgroundColor: '#07070f',
+    backgroundColor: '#00000000',
+    transparent: true,
+    maximizable: false,
   
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -145,7 +138,7 @@ function createWindow() {
     mainWindow.show();
   });
 
-  setTimeout(() => setupUpdater(), 1000);
+  setTimeout(() => autoUpdate.init(mainWindow), 1000);
 }
 
 app.whenReady().then(() => {

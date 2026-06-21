@@ -11,6 +11,7 @@
 </head>
 <body>
 
+<div class="window-frame">
   <div class="titlebar">
     <div class="title">
       <img src="icon.png">Mimo Controle Financeiro
@@ -28,6 +29,7 @@
     </div>
   </div>
 
+  <div class="window-scroll">
 <div class="app-shell">
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -224,6 +226,8 @@
     </div><!-- /aba-visao-geral -->
   </main>
 </div>
+  </div><!-- /window-scroll -->
+</div><!-- /window-frame -->
 
 <!-- Update Box -->
 <div id="update-box">
@@ -255,5 +259,12 @@
 </div>
 
 <script src="app.js"></script>
+<script>
+  if (window.windowControls && window.windowControls.onMaximizeChange) {
+    window.windowControls.onMaximizeChange((isMax) => {
+      document.querySelector('.window-frame').classList.toggle('is-maximized', isMax);
+    });
+  }
+</script>
 </body>
 </html>
