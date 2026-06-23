@@ -1,6 +1,6 @@
 {
   "name": "mimo-controle-financeiro",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "App de Mimo Controle Financeiro",
   "author": "guilherme teixeira",
   "main": "main.js",
@@ -35,7 +35,8 @@
       "index.css",
       "dados.json",
       "icon.png",
-      "splash.html"
+      "splash.html",
+      "auto-update"
     ],
     "win": {
       "target": "nsis",
