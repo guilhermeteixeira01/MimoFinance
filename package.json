@@ -36,7 +36,7 @@
       "dados.json",
       "icon.png",
       "splash.html",
-      "auto-update"
+      "auto-update.js"
     ],
     "win": {
       "target": "nsis",
